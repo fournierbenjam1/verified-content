@@ -28,4 +28,4 @@ class H(BaseHTTPRequestHandler):
   if not os.path.isfile(f):self.send(404,"text/plain",b"Not found");return
   t="text/html; charset=utf-8" if f.endswith(".html") else "application/javascript" if f.endswith(".js") else "application/json"
   self.send(200,t,open(f,"rb").read())
-HTTPServer(("0.0.0.0",8765),H).serve_forever()
+HTTPServer(('0.0.0.0', int(os.environ.get('PORT', '8765'))), H).serve_forever()
