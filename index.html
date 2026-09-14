@@ -1,29 +1,27 @@
-<!doctype html><html lang="fr"><head>
-<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<meta name="theme-color" content="#111827"><link rel="manifest" href="/manifest.json">
-<title>Verified Content</title>
+<!doctype html>
+<html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#111827"><title>Verified Content</title>
 <style>
-*{box-sizing:border-box}body{margin:0;background:#f3f4f6;color:#111827;font-family:system-ui,-apple-system,Segoe UI,sans-serif}
-main{max-width:680px;margin:auto;padding:20px 16px 40px}h1{font-size:27px;margin:0 0 5px}header p{margin:0;color:#6b7280}
-.card{background:#fff;border-radius:18px;padding:18px;margin-top:16px;box-shadow:0 3px 16px #0001}
-input{width:100%;padding:15px;border:1px solid #d1d5db;border-radius:12px;font-size:16px}
-button{width:100%;border:0;border-radius:12px;padding:14px;margin-top:10px;font-weight:700;font-size:16px;background:#111827;color:#fff}
-.quick{display:grid;grid-template-columns:1fr 1fr;gap:8px}.quick button{background:#e5e7eb;color:#111827;font-size:13px}
-.badge{display:inline-block;padding:8px 11px;border-radius:999px;font-weight:800;margin-bottom:12px}.yellow{background:#fef3c7}.green{background:#dcfce7}.gray{background:#e5e7eb}
-.row{padding:11px 0;border-bottom:1px solid #eee}.label{color:#6b7280;font-size:13px}.value{font-weight:650;margin-top:2px;word-break:break-word}.note{font-size:13px;color:#6b7280;line-height:1.45;margin-top:12px}
-.hidden{display:none}
+body{margin:0;background:#f3f4f6;color:#111827;font-family:system-ui,sans-serif}main{max-width:700px;margin:auto;padding:20px 16px}
+.card{background:white;padding:18px;border-radius:18px;margin:16px 0;box-shadow:0 3px 15px #0001}
+h1{margin:0 0 6px}p{color:#6b7280}input{width:100%;padding:14px;border:1px solid #ccc;border-radius:12px;font-size:16px;box-sizing:border-box}button{width:100%;padding:14px;margin-top:10px;border:0;border-radius:12px;background:#111827;color:white;font-weight:700;font-size:16px}.small{font-size:13px;color:#6b7280}.badge{display:inline-block;padding:8px 12px;border-radius:99px;font-weight:700;background:#fef3c7}.row{padding:10px 0;border-bottom:1px solid #eee}.label{font-size:13px;color:#6b7280}.value{font-weight:650;overflow-wrap:anywhere}
 </style></head><body><main>
-<header><h1>🔎 Verified Content</h1><p>Votre conseiller de provenance et de vérification</p></header>
-<section class="card"><input id="url" type="url" placeholder="Collez l'URL d'une image ou d'un article">
-<button onclick="analyze()">Analyser le contenu</button><div class="quick">
-<button onclick="demoImage()">Test image</button><button onclick="demoArticle()">Test article</button></div></section>
-<section id="result" class="card hidden"></section></main>
+<h1>🔎 Verified Content</h1><p>Votre conseiller en provenance et en vérification.</p>
+<div class="card">
+<input id="url" type="url" placeholder="https://exemple.com/image.jpg ou article">
+<button id="go">Analyser cette URL</button>
+<p class="small">Collez n’importe quelle URL publique. Les boutons de démonstration ont été supprimés : ils ne sont plus nécessaires.</p>
+</div>
+<div id="result" class="card" hidden></div>
 <script>
-const img="https://robbreport.com/wp-content/uploads/2018/02/02_1935-bugatti-type-57sc-atlantic.jpg";
-const art="https://www.lovethegarden.com/fr-fr/guides-des-culture/conseils-pour-planter-une-plante-grimpante";
-function demoImage(){url.value=img;show({badge:"🟡 Provenance partiellement établie",cls:"yellow",rows:{Domaine:"Robb Report",Type:"Image",Provenance:"Image publiée sur Robb Report",EXIF:"Non détectables dans la copie analysée",C2PA:"Non détectable dans cette copie","Signal IA":"Aucun signal concluant identifié"},note:"L’absence de métadonnées ou de C2PA ne prouve pas qu’une image est fausse."})}
-function demoArticle(){url.value=art;show({badge:"🟢 Source identifiable",cls:"green",rows:{Domaine:"Love The Garden",Type:"Article",Source:"La Pause Jardin",Auteur:"À confirmer",Vérification:"Affirmations à comparer avec des sources indépendantes"},note:"La provenance de la publication et la véracité de ses affirmations sont évaluées séparément."})}
-function show(r){result.className="card";result.innerHTML='<div class="badge '+r.cls+'">'+r.badge+'</div>'+Object.entries(r.rows).map(x=>'<div class="row"><div class="label">'+x[0]+'</div><div class="value">'+x[1]+'</div></div>').join('')+'<div class="note">'+r.note+'</div>'}
-async function analyze(){let u=url.value.trim();if(!u)return;try{let r=await fetch('/api/analyze?url='+encodeURIComponent(u));let j=await r.json();if(!r.ok)throw Error(j.error);show(j)}catch(e){show({badge:"⚪ Analyse impossible",cls:"gray",rows:{Erreur:e.message},note:"Cette démo utilise un petit serveur local. Pour une vraie utilisation smartphone, il faudra héberger le backend en HTTPS."})}}
-if("serviceWorker"in navigator)navigator.serviceWorker.register("/sw.js");
-</script></body></html>
+const $=id=>document.getElementById(id);
+function show(r){$('result').hidden=false;$('result').innerHTML='<div class="badge">'+r.badge+'</div>'+
+Object.entries(r.rows||{}).map(([k,v])=>'<div class="row"><div class="label">'+k+'</div><div class="value">'+v+'</div></div>').join('')+
+'<p class="small">'+(r.note||'')+'</p>'}
+$('go').onclick=async()=>{
+ const u=$('url').value.trim(); if(!u){show({badge:'⚪ URL manquante',rows:{},note:'Collez une URL publique puis relancez l’analyse.'});return}
+ show({badge:'⏳ Analyse en cours…',rows:{},note:'Récupération du contenu…'});
+ try{const res=await fetch('/api/analyze?url='+encodeURIComponent(u));const data=await res.json();if(!res.ok)throw Error(data.error||'Erreur serveur');show(data)}
+ catch(e){show({badge:'⚪ Analyse impossible',rows:{Erreur:e.message},note:'Vérifiez que LANCER.bat est toujours ouvert et que l’URL est publique. Certains sites bloquent les robots ou exigent une connexion.'})}
+};
+</script></main></body></html>
