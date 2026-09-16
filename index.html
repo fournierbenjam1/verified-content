@@ -21,7 +21,7 @@ Object.entries(r.rows||{}).map(([k,v])=>'<div class="row"><div class="label">'+k
 $('go').onclick=async()=>{
  const u=$('url').value.trim(); if(!u){show({badge:'⚪ URL manquante',rows:{},note:'Collez une URL publique puis relancez l’analyse.'});return}
  show({badge:'⏳ Analyse en cours…',rows:{},note:'Récupération du contenu…'});
- try{const res=await fetch('/api/analyze?url='+encodeURIComponent(u));const data=await res.json();if(!res.ok)throw Error(data.error||'Erreur serveur');show(data)}
- catch(e){show({badge:'⚪ Analyse impossible',rows:{Erreur:e.message},note:'Vérifiez que LANCER.bat est toujours ouvert et que l’URL est publique. Certains sites bloquent les robots ou exigent une connexion.'})}
+ try{const res=await fetch('/api/analyze?url='+encodeURIComponent(u));const raw=await res.text();let data;try{data=raw?JSON.parse(raw):null}catch(parseError){throw Error('Le serveur a renvoyé une réponse non JSON (HTTP '+res.status+'). '+(raw.slice(0,180)||'Réponse vide.'))}if(!res.ok)throw Error((data&&data.error)||'Erreur serveur HTTP '+res.status);if(!data)throw Error('Réponse vide du serveur.');show(data)}
+ catch(e){show({badge:'⚪ Analyse impossible',rows:{Erreur:e.message},note:'Ouvre les journaux Render si le problème continue. Certains sites bloquent les robots ou prennent trop de temps à répondre.'})}
 };
 </script></main></body></html>
