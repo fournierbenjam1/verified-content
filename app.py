@@ -1,4 +1,4 @@
-from http.server import BaseHTTPRequestHandler,HTTPServer
+from http.server import BaseHTTPRequestHandler,ThreadingHTTPServer
 from urllib.parse import urlparse,parse_qs
 from urllib.request import Request,urlopen
 import hashlib,json,os,re,html
@@ -48,7 +48,7 @@ def analyze(url):
     p=urlparse(url)
     if p.scheme not in ('http','https'): raise ValueError('L’URL doit commencer par http:// ou https://')
     req=Request(url,headers={'User-Agent':'Mozilla/5.0 VerifiedContent/1.0'})
-    with urlopen(req,timeout=15) as f:
+    with urlopen(req,timeout=8) as f:
         data=f.read(8*1024*1024); content_type=f.headers.get_content_type(); final_url=f.geturl()
     domain=urlparse(final_url).netloc; digest=hashlib.sha256(data).hexdigest()
     if content_type.startswith('image/'):
@@ -97,4 +97,4 @@ class Handler(BaseHTTPRequestHandler):
     def log_message(self,*args): pass
 
 print('Verified Content ouvert sur http://127.0.0.1:8765')
-HTTPServer(('0.0.0.0',int(os.environ.get('PORT','8765'))),Handler).serve_forever()
+ThreadingHTTPServer(('0.0.0.0',int(os.environ.get('PORT','8765'))),Handler).serve_forever()
